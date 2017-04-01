@@ -7,21 +7,27 @@ pandas\_talib
 
 纯Pandas实现的指标库，用于技术分析。
 
-修改自 https://github.com/femtotrader/pandas_talib
+原项目是 https://github.com/femtotrader/pandas_talib
+ - 基本上重写了
  - 兼容了pandas 0.19
  - 完善了接口使得方法可以更泛化，比如可以同时对多列操作。
- - 修改了错误，跑通了所有ta-lib的对比测试，确保计算结果的正确。
+ - 修正了许多错误
+ - 跑通了所有ta-lib的对比测试，确保计算结果的正确。
 
+
+----------------------
 
 
 \*\* Work in progress \*\*
 
 A Python Pandas implementation of technical indicators
 
-Modified from https://github.com/femtotrader/pandas_talib
- - compatible with pandas 0.19
+Originated from https://github.com/femtotrader/pandas_talib
+ - Basically rewrote
+ - Compatible with pandas 0.19
  - Modified some interfaces makes the method more general, such as the multi-column support.
- - Pass all the comparison test of the original ta-lib to ensure that the results are correct.
+ - Fixed many bugs
+ - Pass all comparison with the TA-Lib to ensure that the results are correct.
 
 
 Usage

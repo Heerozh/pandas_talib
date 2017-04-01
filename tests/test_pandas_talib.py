@@ -5,6 +5,7 @@ import unittest
 
 import pandas as pd
 import numpy as np
+import math
 import talib
 from pandas_talib import *
 
@@ -33,14 +34,13 @@ class TestFunctions(unittest.TestCase):
         expected = talib.MA(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
-
     def test_indicator_EMA(self):
         n = 3
+        k = int(math.log(0.00000001)/math.log(1-2/(n+1)))
         result = EMA(df, 'Close', n, join=False, dropna=False, min_periods=n)
         isinstance(result, pd.DataFrame)
         expected = talib.EMA(df['Close'].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values[:, -1], expected)
-
+        np.testing.assert_almost_equal(result.values[k:, -1], expected[k:])
 
     def test_indicator_MOM(self):
         n = 3
@@ -49,7 +49,6 @@ class TestFunctions(unittest.TestCase):
         expected = talib.MOM(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
-
     def test_indicator_ROC(self):
         n = 3
         result = ROC(df, 'Close', n, join=False, dropna=False)
@@ -57,20 +56,24 @@ class TestFunctions(unittest.TestCase):
         expected = talib.ROC(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
-
     def test_indicator_ATR(self):
-        n = 3
+        n = 14
         result = ATR(df, n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.ATR(df['High'].values, df['Low'].values, df['Close'].values, timeperiod=n)
+        print('ATR', result.values[-10:])
         np.testing.assert_almost_equal(result.values, expected)
 
-    """
     def test_indicator_BBANDS(self):
-        n = 3
-        result = BBANDS(df, n)
+        n = 20
+        result = BBANDS(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
+        expected = talib.BBANDS(df['Close'].values, timeperiod=n)
+        print('BBANDS', result.values[-10:])
+        np.testing.assert_almost_equal(result.values.T, expected)
 
+
+    """
     def test_indicator_PPSR(self):
         result = PPSR(df)
         isinstance(result, pd.DataFrame)
@@ -181,9 +184,11 @@ class TestFunctions(unittest.TestCase):
         n = 2
         result = DONCH(df, n)
         isinstance(result, pd.DataFrame)
+    """
 
     def test_indicator_STDDEV(self):
-        n = 2
-        result = STDDEV(df, n)
+        n = 10
+        result = STDDEV(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
-    """
+        expected = talib.STDDEV(df['Close'].values, timeperiod=n)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)

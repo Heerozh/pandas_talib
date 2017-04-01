@@ -1,15 +1,15 @@
 """
 ta-lib tested pure pandas implement, 
-base on https://github.com/femtotrader/pandas_talib
+Originated from https://github.com/femtotrader/pandas_talib
 
-@author: Bruno Franca
-@author: Peter Bakker
-@author: Femto Trader
-@auther: Heerozh
+Repository:
+https://github.com/Heerozh/pandas_talib
 """
 import pandas as pd
+import numpy as np
 
-__all__ = ['MA', 'SMA', 'EMA', 'MOM', 'ROC', 'ATR']
+__all__ = ['MA', 'SMA', 'EMA', 'STDDEV', 'MOM', 'ROC', 'ATR', 'BBANDS']
+
 
 def out(df, result, join, dropna):
     if join:
@@ -31,6 +31,23 @@ def sel_columns(df, columns, new_names):
         return result
 
 
+def join_result(dfs, columns, new_names):
+    if type(columns) is str:
+        columns = [columns]
+
+    if new_names is None or new_names is False:
+        join = np.array([[s + str(i) for i in range(len(dfs))] for s in columns])
+    else:
+        join = np.array(new_names)
+
+    result = dfs[0]
+    for i in range(len(dfs)):
+        dfs[i].rename(columns=dict(zip(columns, join[:, i])), inplace=True)
+        if i > 0:
+            result = result.join(dfs[i], how='inner')
+    return result
+
+
 def MA(df, columns, n, join=None, dropna=True):
     """
     Moving Average
@@ -49,6 +66,15 @@ def EMA(df, columns, n, join=None, dropna=True, min_periods=0):
     """
     result = sel_columns(df, columns, join)
     result = result.ewm(span=n, min_periods=min_periods, adjust=False).mean()
+    return out(df, result, join, dropna)
+
+
+def STDDEV(df, columns, n, join=None, dropna=True):
+    """
+    Standard Deviation
+    """
+    result = sel_columns(df, columns, join)
+    result = result.rolling(n).std(ddof=0)
     return out(df, result, join, dropna)
 
 
@@ -76,35 +102,45 @@ def ATR(df, n, high_column='High', low_column='Low', close_column='Close', join=
     """
     Average True Range
     """
-    i = 0
-    tr_l = [0]
-    while i < len(df) - 1:  # df.index[-1]:
-        # for i, idx in enumerate(df.index)
-        # TR=max(df.get_value(i + 1, 'High'), df.get_value(i, 'Close')) - min(df.get_value(i + 1, 'Low'), df.get_value(i, 'Close'))
-        tr = max(df[high_column].iloc[i + 1],
-                 df[close_column].iloc[i] - min(df[low_column].iloc[i + 1],
-                                                df[close_column].iloc[i])
-                 )
-        tr_l.append(tr)
-        i = i + 1
-    tr_s = pd.Series(tr_l)
-    result = pd.Series(pd.ewma(tr_s, span=n, min_periods=n),
-                       name='ATR_' + str(n))
-    return out(df, result, join, dropna)
+    high_series = df[high_column]
+    low_series = df[low_column]
+    close_prev_series = df[close_column].shift(1)
+    tr = np.max((
+        (high_series.values - low_series.values),
+        np.abs(high_series.values - close_prev_series.values),
+        np.abs(low_series.values - close_prev_series.values),
+    ), 0)
+
+    tr = pd.Series(tr, name=type(join) is list and join[0] or join)
+    if len(tr) > n:
+        tr[n] = tr[1:n+1].mean()
+        nm1 = n - 1
+        for i in range(n+1, len(tr)):
+            tr[i] = (tr[i-1] * nm1 + tr[i]) / n
+
+    tr[:n] = np.nan
+    return out(df, tr, join, dropna)
 
 
-def BBANDS(df, n, columns=('close',)):
+def BBANDS(df, columns, n, join=None, dropna=True):
     """
     Bollinger Bands
+    Join Example:  
+        BBANDS(df, ['Close', 'VWAP'], 20, join=[
+            ['Close_BBUp', 'Close_MA20', 'Close_BBDown'], 
+            ['VWAP_BBUp', 'VWAP_MA20', 'VWAP_BBDown'], 
+        ])
     """
-    MA = pd.Series(pd.rolling_mean(df[price], n))
-    MSD = pd.Series(pd.rolling_std(df[price], n))
-    b1 = 4 * MSD / MA
-    B1 = pd.Series(b1, name='BollingerB_' + str(n))
-    b2 = (df[price] - MA + 2 * MSD) / (4 * MSD)
-    B2 = pd.Series(b2, name='Bollinger%b_' + str(n))
-    result = pd.DataFrame([B1, B2]).transpose()
+    ma = MA(df, columns, n, dropna=dropna)
+    std = STDDEV(df, columns, n, dropna=dropna)
+    b1 = ma + 2 * std
+    b2 = ma - 2 * std
+
+    result = join_result([b1, ma, b2], columns, join)
     return out(df, result, join, dropna)
+
+
+# ---------------  The following sections are not completed ---------------
 
 
 def PPSR(df):
@@ -487,9 +523,4 @@ def DONCH(df, n):
     return out(df, result, join, dropna)
 
 
-def STDDEV(df, n):
-    """
-    Standard Deviation
-    """
-    result = pd.Series(pd.rolling_std(df['Close'], n), name='STD_' + str(n))
-    return out(df, result, join, dropna)
+
