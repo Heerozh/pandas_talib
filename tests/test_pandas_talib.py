@@ -1,34 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import unittest
 
 import pandas as pd
 import numpy as np
 import talib
-from pandas_talib import (
-    SETTINGS,
-    SMA,
-    MA,
-    MOM,
-    ATR,
-)
-# def test_pandas_talib(self):
-#    raise(NotImplementedError)
+from pandas_talib import *
 
-basepath = os.path.dirname(__file__)
-filename = os.path.join(basepath, "..", "data", "AAPL_GOOGL_IBM_20140101_20141201.xls")
-d = pd.read_excel(filename, sheetname=None)
-panel = pd.Panel.from_dict(d)
-# print(panel.loc['Open','2014-02-03','AAPL'])
-panel = panel.iloc[:, 1:, :]
-panel.major_axis.name = "Date"
-# print(panel)
-
-df = panel.loc[:, :, 'AAPL']
-
-SETTINGS.join = False
+try:
+    df = pd.read_csv('./data/AAPL.csv')
+except OSError:
+    import quandl
+    df = quandl.get("WIKI/AAPL")
+    df.to_csv('./data/AAPL.csv')
 
 
 class TestFunctions(unittest.TestCase):
@@ -36,50 +21,50 @@ class TestFunctions(unittest.TestCase):
     def test_indicator_SMA(self):
         timeperiod = 10
         random_serie = pd.DataFrame(np.random.uniform(0, 1, size=10), columns=['last'])
-        result = SMA(random_serie, timeperiod, key='last')
+        result = SMA(random_serie, timeperiod, columns=['last'], join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.SMA(random_serie['last'].values, timeperiod=10)
-        np.testing.assert_almost_equal(result.values, expected)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_MA(self):
         n = 3
         price = 'Close'
-        result = MA(df, n)
+        result = MA(df, n, columns=[price], join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.MA(df[price].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values, expected)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
 
-    """
+
     def test_indicator_EMA(self):
         n = 3
         price = 'Close'
-        result = EMA(df, n)
+        result = EMA(df, n, columns=[price], join=False, dropna=False, min_periods=n)
         isinstance(result, pd.DataFrame)
         expected = talib.EMA(df[price].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values, expected)
-    """
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
+
 
     def test_indicator_MOM(self):
         n = 3
         price = 'Close'
-        result = MOM(df, n)
+        result = MOM(df, n, columns=[price], join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.MOM(df[price].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values, expected)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
 
-    """
+
     def test_indicator_ROC(self):
         n = 3
         price = 'Close'
-        result = ROC(df, n)
+        result = ROC(df, n, [price], join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.ROC(df[price].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values, expected)
-    """
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
+
 
     def test_indicator_ATR(self):
         n = 3
-        result = ATR(df, n)
+        result = ATR(df, n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.ATR(df['High'].values, df['Low'].values, df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values, expected)
