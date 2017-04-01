@@ -21,44 +21,40 @@ class TestFunctions(unittest.TestCase):
     def test_indicator_SMA(self):
         timeperiod = 10
         random_serie = pd.DataFrame(np.random.uniform(0, 1, size=10), columns=['last'])
-        result = SMA(random_serie, timeperiod, columns=['last'], join=False, dropna=False)
+        result = SMA(random_serie, 'last', timeperiod, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.SMA(random_serie['last'].values, timeperiod=10)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_MA(self):
         n = 3
-        price = 'Close'
-        result = MA(df, n, columns=[price], join=False, dropna=False)
+        result = MA(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
-        expected = talib.MA(df[price].values, timeperiod=n)
+        expected = talib.MA(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
 
     def test_indicator_EMA(self):
         n = 3
-        price = 'Close'
-        result = EMA(df, n, columns=[price], join=False, dropna=False, min_periods=n)
+        result = EMA(df, 'Close', n, join=False, dropna=False, min_periods=n)
         isinstance(result, pd.DataFrame)
-        expected = talib.EMA(df[price].values, timeperiod=n)
+        expected = talib.EMA(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
 
     def test_indicator_MOM(self):
         n = 3
-        price = 'Close'
-        result = MOM(df, n, columns=[price], join=False, dropna=False)
+        result = MOM(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
-        expected = talib.MOM(df[price].values, timeperiod=n)
+        expected = talib.MOM(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
 
     def test_indicator_ROC(self):
         n = 3
-        price = 'Close'
-        result = ROC(df, n, [price], join=False, dropna=False)
+        result = ROC(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
-        expected = talib.ROC(df[price].values, timeperiod=n)
+        expected = talib.ROC(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
 

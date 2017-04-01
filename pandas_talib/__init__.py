@@ -21,7 +21,9 @@ def out(df, result, join, dropna):
 
 
 def sel_columns(df, columns, new_names):
-    assert(type(columns) is list)
+    if type(columns) is str:
+        columns = [columns]
+
     result = df[columns]
     if new_names:
         return result.rename(columns=dict(zip(columns, new_names)))
@@ -29,7 +31,7 @@ def sel_columns(df, columns, new_names):
         return result
 
 
-def MA(df, n, columns=('Close',), join=None, dropna=True):
+def MA(df, columns, n, join=None, dropna=True):
     """
     Moving Average
     """
@@ -41,7 +43,7 @@ def MA(df, n, columns=('Close',), join=None, dropna=True):
 SMA = MA
 
 
-def EMA(df, n, columns=('close',), join=None, dropna=True, min_periods=0):
+def EMA(df, columns, n, join=None, dropna=True, min_periods=0):
     """
     Exponential Moving Average
     """
@@ -50,7 +52,7 @@ def EMA(df, n, columns=('close',), join=None, dropna=True, min_periods=0):
     return out(df, result, join, dropna)
 
 
-def MOM(df, n, columns=('close',), join=None, dropna=True):
+def MOM(df, columns, n, join=None, dropna=True):
     """
     Momentum
     """
@@ -59,7 +61,7 @@ def MOM(df, n, columns=('close',), join=None, dropna=True):
     return out(df, result, join, dropna)
 
 
-def ROC(df, n, columns=('close',), join=None, dropna=True):
+def ROC(df, columns, n, join=None, dropna=True):
     """
     Rate of Change
     """
