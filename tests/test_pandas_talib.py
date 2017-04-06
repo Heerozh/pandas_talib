@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# ta-lib source code see:
+# https://sourceforge.net/p/ta-lib/code/HEAD/tree/trunk/ta-lib/c/src/ta_func/ta_MA.c
 
 import unittest
 
@@ -95,109 +97,6 @@ class TestFunctions(unittest.TestCase):
         # print('rsi x', result[0:50])
         # print('rsi y', pd.DataFrame(expected)[0:50])
         np.testing.assert_almost_equal(result.values[:, -1], expected[:])
-
-    """
-    def test_indicator_PPSR(self):
-        result = PPSR(df)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_STOK(self):
-        result = STOK(df)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_STO(self):
-        n = 2
-        result = STO(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_TRIX(self):
-        n = 3
-        result = TRIX(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_ADX(self):
-        (n, n_ADX) = (2, 4)
-        result = ADX(df, n, n_ADX)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_MassI(self):
-        result = MassI(df)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_Vortex(self):
-        n = 2
-        result = Vortex(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_KST(self):
-        (r1, r2, r3, r4, n1, n2, n3, n4) = (1, 2, 3, 4, 6, 7, 9, 9)
-        result = KST(df, r1, r2, r3, r4, n1, n2, n3, n4)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_TSI(self):
-        (r, s) = (2, 4)
-        result = TSI(df, r, s)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_ACCDIST(self):
-        n = 2
-        result = ACCDIST(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_Chaikin(self):
-        result = Chaikin(df)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_MFI(self):
-        n = 2
-        result = MFI(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_OBV(self):
-        n = 2
-        result = OBV(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_FORCE(self):
-        n = 2
-        result = FORCE(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_EOM(self):
-        n = 2
-        result = EOM(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_CCI(self):
-        n = 2
-        result = CCI(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_COPP(self):
-        n = 2
-        result = COPP(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_COPP(self):
-        n = 2
-        result = COPP(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_KELCH(self):
-        n = 2
-        result = KELCH(df, n)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_ULTOSC(self):
-        n = 2
-        result = ULTOSC(df)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_DONCH(self):
-        n = 2
-        result = DONCH(df, n)
-        isinstance(result, pd.DataFrame)
-    """
 
     def test_indicator_STDDEV(self):
         n = 10
