@@ -65,5 +65,4 @@ Run all unit tests
 
     $ nosetests -s -v
 
-Run a given test
 
