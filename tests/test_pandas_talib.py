@@ -28,7 +28,7 @@ class TestFunctions(unittest.TestCase):
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_MA(self):
-        n = 3
+        n = 5
         result = MA(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.MA(df['Close'].values, timeperiod=n)
@@ -36,24 +36,30 @@ class TestFunctions(unittest.TestCase):
 
     def test_indicator_EMA(self):
         n = 3
-        k = int(math.log(0.00000001)/math.log(1-2/(n+1)))
         result = EMA(df, 'Close', n, join=False, dropna=False, min_periods=n)
         isinstance(result, pd.DataFrame)
         expected = talib.EMA(df['Close'].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values[k:, -1], expected[k:])
+        np.testing.assert_almost_equal(result.values[:, -1], expected[:])
 
     def test_indicator_MOM(self):
-        n = 3
+        n = 15
         result = MOM(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.MOM(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ROC(self):
-        n = 3
+        n = 1
         result = ROC(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.ROC(df['Close'].values, timeperiod=n)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
+
+    def test_indicator_ROCP(self):
+        n = 1
+        result = ROCP(df, 'Close', n, join=False, dropna=False)
+        isinstance(result, pd.DataFrame)
+        expected = talib.ROCP(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ATR(self):
@@ -61,7 +67,7 @@ class TestFunctions(unittest.TestCase):
         result = ATR(df, n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.ATR(df['High'].values, df['Low'].values, df['Close'].values, timeperiod=n)
-        print('ATR', result.values[-10:])
+        # print('ATR', result.values[-10:])
         np.testing.assert_almost_equal(result.values, expected)
 
     def test_indicator_BBANDS(self):
@@ -69,9 +75,27 @@ class TestFunctions(unittest.TestCase):
         result = BBANDS(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.BBANDS(df['Close'].values, timeperiod=n)
-        print('BBANDS', result.values[-10:])
+        # print('BBANDS', result.values[-10:])
         np.testing.assert_almost_equal(result.values.T, expected)
 
+    def test_indicator_MACD(self):
+        n_fast, n_slow, s_signal = 12, 26, 9
+        result = MACD(df, 'Close', n_fast, n_slow, s_signal, join=False, dropna=False)
+        print('MACDx', result.values.T[:, 20:50])
+        isinstance(result, pd.DataFrame)
+        expected = talib.MACD(df['Close'].values, fastperiod=12, slowperiod=26, signalperiod=9)
+        print('MACDy', np.array(expected)[:, 20:50])
+        np.testing.assert_almost_equal(result.values.T[:, :], np.array(expected)[:, :])
+
+    def test_indicator_RSI(self):
+        n = 14
+        print('------------RSI-----------')
+        result = RSI(df, 'Close', n, join=False, dropna=False)
+        isinstance(result, pd.DataFrame)
+        expected = talib.RSI(df['Close'].values, timeperiod=n)
+        print((result), pd.DataFrame(expected))
+
+        np.testing.assert_almost_equal(result.values[:, -1], expected[:])
 
     """
     def test_indicator_PPSR(self):
@@ -97,11 +121,6 @@ class TestFunctions(unittest.TestCase):
         result = ADX(df, n, n_ADX)
         isinstance(result, pd.DataFrame)
 
-    def test_indicator_MACD(self):
-        (n_fast, n_slow) = (9, 13)
-        result = MACD(df, n_fast, n_slow)
-        isinstance(result, pd.DataFrame)
-
     def test_indicator_MassI(self):
         result = MassI(df)
         isinstance(result, pd.DataFrame)
@@ -114,11 +133,6 @@ class TestFunctions(unittest.TestCase):
     def test_indicator_KST(self):
         (r1, r2, r3, r4, n1, n2, n3, n4) = (1, 2, 3, 4, 6, 7, 9, 9)
         result = KST(df, r1, r2, r3, r4, n1, n2, n3, n4)
-        isinstance(result, pd.DataFrame)
-
-    def test_indicator_RSI(self):
-        n = 2
-        result = RSI(df, n)
         isinstance(result, pd.DataFrame)
 
     def test_indicator_TSI(self):
