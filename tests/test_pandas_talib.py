@@ -81,20 +81,19 @@ class TestFunctions(unittest.TestCase):
     def test_indicator_MACD(self):
         n_fast, n_slow, s_signal = 12, 26, 9
         result = MACD(df, 'Close', n_fast, n_slow, s_signal, join=False, dropna=False)
-        print('MACDx', result.values.T[:, 20:50])
+        # print('MACDx', result.values.T[:, 20:50])
         isinstance(result, pd.DataFrame)
         expected = talib.MACD(df['Close'].values, fastperiod=12, slowperiod=26, signalperiod=9)
-        print('MACDy', np.array(expected)[:, 20:50])
+        # print('MACDy', np.array(expected)[:, 20:50])
         np.testing.assert_almost_equal(result.values.T[:, :], np.array(expected)[:, :])
 
     def test_indicator_RSI(self):
         n = 14
-        print('------------RSI-----------')
         result = RSI(df, 'Close', n, join=False, dropna=False)
         isinstance(result, pd.DataFrame)
         expected = talib.RSI(df['Close'].values, timeperiod=n)
-        print((result), pd.DataFrame(expected))
-
+        # print('rsi x', result[0:50])
+        # print('rsi y', pd.DataFrame(expected)[0:50])
         np.testing.assert_almost_equal(result.values[:, -1], expected[:])
 
     """

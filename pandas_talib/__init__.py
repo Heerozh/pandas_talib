@@ -188,31 +188,22 @@ def RSI(df, columns, n, join=None, dropna=True):
     Relative Strength Index
     """
     sel_df = sel_columns(df, columns, None)
-    change = df.diff(1)
+    change = sel_df.diff(1)
 
     up = change.clip_lower(0)
-    up.iloc[n-1] = np.mean(up[:n])
-    up = up.drop(up.index[:n-1])
+    up.iloc[:n] = np.mean(up.values[1:n])
     up = up.ewm(com=n-1, adjust=False).mean()
 
     down = -change.clip_upper(0)
-    down.iloc[n-1] = np.mean(down[:n])
-    down = down.drop(down.index[:n-1])
+    down.iloc[:n] = np.mean(down.values[1:n])
     down = down.ewm(com=n-1, adjust=False).mean()
+
+    # result = np.where(down == 0, 100, np.where(up == 0, 0, rsi))
     rsi = 100 - (100 / (1 + up / down))
-
-
-    # print('up', change[:5], up[:5], down[:5], (up / down)[:5])
-    # a = 1/(1+(n-1))
-    # print('test', (1-a) * 0 + a*change.iloc[1])
-    # print(a, change.iloc[1])
     rsi[down == 0] = 100
     rsi[(down != 0) & (up == 0)] = 0
-    #rsi[up == 0] = 0
-    rsi[rsi.index[:n]] = np.nan
-    #print(rsi)
+    rsi.iloc[:n] = np.nan
     result = rsi
-    # result = np.where(down == 0, 100, np.where(up == 0, 0, rsi))
     return out(df, result, join, dropna)
 
 
