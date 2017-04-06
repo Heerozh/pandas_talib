@@ -15,7 +15,7 @@ pandas\_talib
 A Python Pandas implementation of technical indicators (Currently only common indicators)
 
  - Compatible with pandas 0.19
- - Pass all comparison with the TA-Lib to ensure that the results are correct.
+ - Pass all comparison test with the TA-Lib to ensure that the results are correct.
 
 
 Usage
