@@ -42,6 +42,8 @@ class TestFunctions(unittest.TestCase):
         isinstance(result, pd.DataFrame)
         expected = talib.EMA(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected[:])
+        # test bug axis
+        result = EMA(df, ['Close', 'Volume'], 20, join=['CloseEMA20', 'VolumeEMA20'], min_periods=-1)
 
     def test_indicator_MOM(self):
         n = 15
@@ -97,6 +99,7 @@ class TestFunctions(unittest.TestCase):
         # print('rsi x', result[0:50])
         # print('rsi y', pd.DataFrame(expected)[0:50])
         np.testing.assert_almost_equal(result.values[:, -1], expected[:])
+        result = RSI(df, ['Close', 'Volume'], 3, join=['CloseRSI', 'VolumeRSI'])
 
     def test_indicator_STDDEV(self):
         n = 10

@@ -29,6 +29,7 @@ def sel_columns(df, columns, new_names):
         result = df[columns]
 
     if new_names:
+        assert len(columns) == len(new_names), '"join" length needs to be same as "columns".'
         return result.rename(columns=dict(zip(columns, new_names)))
     else:
         return result
@@ -68,8 +69,13 @@ def EMA(df, columns, n, join=None, dropna=True, min_periods=0):
     Exponential Moving Average
     """
     result = sel_columns(df, columns, join).copy()
-    result.iloc[:n] = np.mean(result.values[:n])
-    # print(n, result)
+
+    ma = np.mean(result.values[:n], axis=0)
+    result.iloc[:n] = np.resize(ma, (n, len(ma)))
+    if min_periods == -1:
+        min_periods = n
+
+    # print(n, result.head())
     result = result.ewm(span=n, min_periods=min_periods, adjust=False).mean()
     return out(df, result, join, dropna)
 
@@ -165,7 +171,7 @@ def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=True):
             ['VWAP_MACD', 'VWAP_MACDSIGN'', 'VWAP_MACDHIST'], 
         ])
     """
-    assert(n_slow > n_fast)
+    assert n_slow > n_fast, '"n_slow" needs to be greater than "n_fast"'
     fast = EMA(df.iloc[n_slow-n_fast:], columns, n_fast, dropna=dropna, min_periods=n_fast)
     slow = EMA(df, columns, n_slow, dropna=dropna, min_periods=n_slow)
     macd = fast - slow
@@ -186,15 +192,17 @@ def RSI(df, columns, n, join=None, dropna=True):
     """
     Relative Strength Index
     """
-    sel_df = sel_columns(df, columns, None)
+    sel_df = sel_columns(df, columns, join)
     change = sel_df.diff(1)
 
     up = change.clip_lower(0)
-    up.iloc[:n] = np.mean(up.values[1:n])
+    ma = np.mean(up.values[1:n], axis=0)
+    up.iloc[:n] = np.resize(ma, (n, len(ma)))
     up = up.ewm(com=n-1, adjust=False).mean()
 
     down = -change.clip_upper(0)
-    down.iloc[:n] = np.mean(down.values[1:n])
+    ma = np.mean(down.values[1:n], axis=0)
+    down.iloc[:n] = np.resize(ma, (n, len(ma)))
     down = down.ewm(com=n-1, adjust=False).mean()
 
     # result = np.where(down == 0, 100, np.where(up == 0, 0, rsi))
