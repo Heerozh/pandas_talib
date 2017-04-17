@@ -60,11 +60,11 @@ class TestFunctions(unittest.TestCase):
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ROCP(self):
-        n = 1
-        result = ROCP(df, 'Close', n, join=False, dropna=False)
-        isinstance(result, pd.DataFrame)
-        expected = talib.ROCP(df['Close'].values, timeperiod=n)
-        np.testing.assert_almost_equal(result.values[:, -1], expected)
+        for n in [1, 5]:
+            result = ROCP(df, 'Close', n, join=False, dropna=False)
+            isinstance(result, pd.DataFrame)
+            expected = talib.ROCP(df['Close'].values, timeperiod=n)
+            np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ATR(self):
         n = 14
