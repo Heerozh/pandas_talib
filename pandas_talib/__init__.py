@@ -11,12 +11,22 @@ __all__ = ['MA', 'SMA', 'EMA', 'STDDEV', 'MOM', 'ROC', 'ROCP', 'ATR',
            'BBANDS', 'MACD', 'RSI']
 
 
-def out(df, result, join, dropna):
+def out(df, result, join, dropna, dtype):
+
+    if dtype:
+        if isinstance(dtype, (list, tuple)):
+            for i, v in enumerate(dtype):
+                result.iloc[:, i] = result.iloc[:, i].astype(v)
+                print(i, v, result.info())
+        else:
+            result = result.astype(dtype)
+
     if join:
         result = df.join(result, how='inner')
 
     if dropna:
         result.dropna(inplace=True)
+
     return result
 
 
@@ -59,19 +69,19 @@ def join_result(dfs, columns, new_names):
     return result
 
 
-def MA(df, columns, n, join=None, dropna=True):
+def MA(df, columns, n, join=None, dropna=False, dtype=np.float32):
     """
     Moving Average
     """
     result = sel_columns(df, columns, join)
     result = result.rolling(n).mean()
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
 SMA = MA
 
 
-def EMA(df, columns, n, join=None, dropna=True, min_periods=0):
+def EMA(df, columns, n, join=None, dropna=False, min_periods=-1, dtype=np.float32):
     """
     Exponential Moving Average
     """
@@ -84,28 +94,28 @@ def EMA(df, columns, n, join=None, dropna=True, min_periods=0):
 
     # print(n, result.head())
     result = result.ewm(span=n, min_periods=min_periods, adjust=False).mean()
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
-def STDDEV(df, columns, n, join=None, dropna=True):
+def STDDEV(df, columns, n, join=None, dropna=False, dtype=None):
     """
     Standard Deviation
     """
     result = sel_columns(df, columns, join)
     result = result.rolling(n).std(ddof=0)
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
-def MOM(df, columns, n, join=None, dropna=True):
+def MOM(df, columns, n, join=None, dropna=False, dtype=None):
     """
     Momentum
     """
     result = sel_columns(df, columns, join)
     result = result.diff(n)
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
-def ROC(df, columns, n, join=None, dropna=True):
+def ROC(df, columns, n, join=None, dropna=False, dtype=np.float32):
     """
     Rate of Change
     """
@@ -113,10 +123,10 @@ def ROC(df, columns, n, join=None, dropna=True):
     M = result.diff(n)
     N = result.shift(n)
     result = M / N * 100
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
-def ROCP(df, columns, n, join=None, dropna=True):
+def ROCP(df, columns, n, join=None, dropna=False, dtype=np.float32):
     """
     Rate of change Percentage 
     """
@@ -124,11 +134,11 @@ def ROCP(df, columns, n, join=None, dropna=True):
     M = result.diff(n)
     N = result.shift(n)
     result = M / N
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
 def ATR(df, n, high_column='High', low_column='Low', close_column='Close',
-        join=None, dropna=True):
+        join=None, dropna=False, dtype=None):
     """
     Average True Range
     """
@@ -149,10 +159,10 @@ def ATR(df, n, high_column='High', low_column='Low', close_column='Close',
             tr[i] = (tr[i-1] * nm1 + tr[i]) / n
 
     tr[:n] = np.nan
-    return out(df, tr, bool(join), dropna)
+    return out(df, tr, bool(join), dropna, dtype)
 
 
-def BBANDS(df, columns, n, join=None, dropna=True, normalize=False):
+def BBANDS(df, columns, n, join=None, dropna=False, normalize=False, dtype=np.float32):
     """
     Bollinger Bands
     Example:  
@@ -162,8 +172,8 @@ def BBANDS(df, columns, n, join=None, dropna=True, normalize=False):
         ])
     :param normalize: Normalized Bollinger Bands, range -1.0 to 1.0
     """
-    ma = MA(df, columns, n, dropna=dropna)
-    std = STDDEV(df, columns, n, dropna=dropna)
+    ma = MA(df, columns, n, dropna=dropna, dtype=np.float64)
+    std = STDDEV(df, columns, n, dropna=dropna, dtype=np.float64)
     if not normalize:
         b1 = ma + 2 * std
         b2 = ma - 2 * std
@@ -172,11 +182,11 @@ def BBANDS(df, columns, n, join=None, dropna=True, normalize=False):
         nbb = sel_columns(df, columns, new_names=None)
         nbb = (nbb - ma) / (2 * std)
         result = rename_columns(nbb, columns, join)
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
-def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=True,
-          normalize=False):
+def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=False,
+          normalize=False, dtype=np.float32):
     """
     MACD, MACD Signal and MACD difference
     Example:  
@@ -188,13 +198,14 @@ def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=True,
     """
     assert n_slow > n_fast, '"n_slow" needs to be greater than "n_fast"'
     fast = EMA(df.iloc[n_slow-n_fast:], columns, n_fast, dropna=dropna,
-               min_periods=n_fast)
-    slow = EMA(df, columns, n_slow, dropna=dropna, min_periods=n_slow)
+               min_periods=n_fast, dtype=np.float64)
+    slow = EMA(df, columns, n_slow, dropna=dropna,
+               min_periods=n_slow, dtype=np.float64)
     macd = fast - slow
 
     # first drop nan, for calc mean on first row
     sign = EMA(macd[n_slow-1:], columns, n_signal, dropna=dropna,
-               min_periods=n_signal)
+               min_periods=n_signal, dtype=np.float64)
     # and then restore nan row, for row count unchanged
     sign = sign.reindex_like(macd)
 
@@ -211,10 +222,10 @@ def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=True,
             'join: shape must be ({})'.format(len(columns))
         result = rename_columns(hist, columns, join)
 
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 
-def RSI(df, columns, n, join=None, dropna=True, normalize=False):
+def RSI(df, columns, n, join=None, dropna=False, normalize=False, dtype=np.float32):
     """
     Relative Strength Index
     :param normalize: Normalized RSI, range -1.0 to 1.0
@@ -244,6 +255,6 @@ def RSI(df, columns, n, join=None, dropna=True, normalize=False):
 
     rsi.iloc[:n] = np.nan
     result = rsi
-    return out(df, result, bool(join), dropna)
+    return out(df, result, bool(join), dropna, dtype)
 
 

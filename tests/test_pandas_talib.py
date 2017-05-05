@@ -12,11 +12,11 @@ import talib
 from pandas_talib import *
 
 try:
-    df = pd.read_csv('./data/AAPL.csv')
+    df = pd.read_csv('../data/AAPL.csv')
 except OSError:
     import quandl
     df = quandl.get("WIKI/AAPL")
-    df.to_csv('./data/AAPL.csv')
+    df.to_csv('../data/AAPL.csv')
 
 
 class TestFunctions(unittest.TestCase):
@@ -24,21 +24,21 @@ class TestFunctions(unittest.TestCase):
     def test_indicator_SMA(self):
         timeperiod = 10
         random_serie = pd.DataFrame(np.random.uniform(0, 1, size=10), columns=['last'])
-        result = SMA(random_serie, 'last', timeperiod, join=False, dropna=False)
+        result = SMA(random_serie, 'last', timeperiod, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.SMA(random_serie['last'].values, timeperiod=10)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_MA(self):
         n = 5
-        result = MA(df, 'Close', n, join=False, dropna=False)
+        result = MA(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.MA(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_EMA(self):
         n = 3
-        result = EMA(df, 'Close', n, join=False, dropna=False, min_periods=n)
+        result = EMA(df, 'Close', n, join=False, dropna=False, min_periods=n, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.EMA(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected[:])
@@ -47,28 +47,28 @@ class TestFunctions(unittest.TestCase):
 
     def test_indicator_MOM(self):
         n = 15
-        result = MOM(df, 'Close', n, join=False, dropna=False)
+        result = MOM(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.MOM(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ROC(self):
         n = 1
-        result = ROC(df, 'Close', n, join=False, dropna=False)
+        result = ROC(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.ROC(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ROCP(self):
         for n in [1, 5]:
-            result = ROCP(df, 'Close', n, join=False, dropna=False)
+            result = ROCP(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
             isinstance(result, pd.DataFrame)
             expected = talib.ROCP(df['Close'].values, timeperiod=n)
             np.testing.assert_almost_equal(result.values[:, -1], expected)
 
     def test_indicator_ATR(self):
         n = 14
-        result = ATR(df, n, join=False, dropna=False)
+        result = ATR(df, n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.ATR(df['High'].values, df['Low'].values, df['Close'].values, timeperiod=n)
         # print('ATR', result.values[-10:])
@@ -76,7 +76,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_indicator_BBANDS(self):
         n = 20
-        result = BBANDS(df, 'Close', n, join=False, dropna=False)
+        result = BBANDS(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.BBANDS(df['Close'].values, timeperiod=n)
         # print('BBANDS', result.values[-10:])
@@ -84,7 +84,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_indicator_MACD(self):
         n_fast, n_slow, s_signal = 12, 26, 9
-        result = MACD(df, 'Close', n_fast, n_slow, s_signal, join=False, dropna=False)
+        result = MACD(df, 'Close', n_fast, n_slow, s_signal, join=False, dropna=False, dtype=np.float64)
         # print('MACDx', result.values.T[:, 20:50])
         isinstance(result, pd.DataFrame)
         expected = talib.MACD(df['Close'].values, fastperiod=12, slowperiod=26, signalperiod=9)
@@ -93,7 +93,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_indicator_RSI(self):
         n = 14
-        result = RSI(df, 'Close', n, join=False, dropna=False)
+        result = RSI(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.RSI(df['Close'].values, timeperiod=n)
         # print('rsi x', result[0:50])
@@ -103,7 +103,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_indicator_STDDEV(self):
         n = 10
-        result = STDDEV(df, 'Close', n, join=False, dropna=False)
+        result = STDDEV(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
         isinstance(result, pd.DataFrame)
         expected = talib.STDDEV(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
