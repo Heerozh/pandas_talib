@@ -107,3 +107,9 @@ class TestFunctions(unittest.TestCase):
         isinstance(result, pd.DataFrame)
         expected = talib.STDDEV(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
+
+        rocp = ROCP(df, ['Close'], 3, dropna=True)
+        result = STDDEV(df, rocp, n, join=False, dropna=False, dtype=np.float64)
+        df2 = ROCP(df, ['Close'], 3, join=['Close_ROCP3'], dropna=True, dtype=np.float64)
+        expected = talib.STDDEV(df2['Close_ROCP3'].values, timeperiod=n)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)

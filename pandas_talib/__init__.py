@@ -37,13 +37,20 @@ def rename_columns(df, columns, new_names):
 
 
 def sel_columns(df, columns, new_names):
-    if type(columns) is str:
-        columns = [columns]
-
-    if type(df) is pd.Series:
-        result = df
+    if type(columns) is pd.Series:
+        result = columns
+        columns = result.name
+    elif type(columns) is pd.DataFrame:
+        result = columns
+        columns = result.columns.values
     else:
-        result = df[columns]
+        if type(columns) is str:
+            columns = [columns]
+
+        if type(df) is pd.Series:
+            result = df
+        else:
+            result = df[columns]
 
     if new_names:
         result = rename_columns(result, columns, new_names)
