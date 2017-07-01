@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 __all__ = ['MA', 'SMA', 'EMA', 'STDDEV', 'MOM', 'ROC', 'ROCP', 'ATR',
-           'BBANDS', 'MACD', 'RSI']
+           'BBANDS', 'MACD', 'RSI', 'MAX', 'MIN']
 
 
 def out(df, result, join, dropna, dtype):
@@ -88,7 +88,8 @@ def MA(df, columns, n, join=None, dropna=False, dtype=np.float32):
 SMA = MA
 
 
-def EMA(df, columns, n, join=None, dropna=False, min_periods=-1, dtype=np.float32):
+def EMA(df, columns, n, join=None, dropna=False, min_periods=-1,
+        dtype=np.float32):
     """
     Exponential Moving Average
     """
@@ -169,7 +170,8 @@ def ATR(df, n, high_column='High', low_column='Low', close_column='Close',
     return out(df, tr, bool(join), dropna, dtype)
 
 
-def BBANDS(df, columns, n, join=None, dropna=False, normalize=False, dtype=np.float32):
+def BBANDS(df, columns, n, join=None, dropna=False, normalize=False,
+           dtype=np.float32):
     """
     Bollinger Bands
     Example:  
@@ -193,7 +195,7 @@ def BBANDS(df, columns, n, join=None, dropna=False, normalize=False, dtype=np.fl
 
 
 def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=False,
-          normalize=False, dtype=np.float32):
+         normalize=False, dtype=np.float32):
     """
     MACD, MACD Signal and MACD difference
     Example:  
@@ -201,7 +203,6 @@ def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=False,
             ['Close_MACD', 'Close_MACDSIGN', 'Close_MACDHIST'], 
             ['VWAP_MACD', 'VWAP_MACDSIGN'', 'VWAP_MACDHIST'], 
         ])
-    :param normalize: True for return: log(macd-sign)
     """
     assert n_slow > n_fast, '"n_slow" needs to be greater than "n_fast"'
     fast = EMA(df.iloc[n_slow-n_fast:], columns, n_fast, dropna=dropna,
@@ -232,7 +233,8 @@ def MACD(df, columns, n_fast, n_slow, n_signal, join=None, dropna=False,
     return out(df, result, bool(join), dropna, dtype)
 
 
-def RSI(df, columns, n, join=None, dropna=False, normalize=False, dtype=np.float32):
+def RSI(df, columns, n, join=None, dropna=False, normalize=False,
+        dtype=np.float32):
     """
     Relative Strength Index
     :param normalize: Normalized RSI, range -1.0 to 1.0
@@ -264,4 +266,21 @@ def RSI(df, columns, n, join=None, dropna=False, normalize=False, dtype=np.float
     result = rsi
     return out(df, result, bool(join), dropna, dtype)
 
+
+def MAX(df, columns, n, join=None, dropna=False, dtype=np.float32):
+    """
+    Highest value over a specified period
+    """
+    result = sel_columns(df, columns, join)
+    result = result.rolling(n).max()
+    return out(df, result, bool(join), dropna, dtype)
+
+
+def MIN(df, columns, n, join=None, dropna=False, dtype=np.float32):
+    """
+    Lowest value over a specified period
+    """
+    result = sel_columns(df, columns, join)
+    result = result.rolling(n).min()
+    return out(df, result, bool(join), dropna, dtype)
 

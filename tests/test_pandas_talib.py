@@ -113,3 +113,17 @@ class TestFunctions(unittest.TestCase):
         df2 = ROCP(df, ['Close'], 3, join=['Close_ROCP3'], dropna=True, dtype=np.float64)
         expected = talib.STDDEV(df2['Close_ROCP3'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
+
+    def test_indicator_MAX(self):
+        n = 5
+        result = MAX(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
+        isinstance(result, pd.DataFrame)
+        expected = talib.MAX(df['Close'].values, timeperiod=n)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
+
+    def test_indicator_MIN(self):
+        n = 5
+        result = MIN(df, 'Close', n, join=False, dropna=False, dtype=np.float64)
+        isinstance(result, pd.DataFrame)
+        expected = talib.MIN(df['Close'].values, timeperiod=n)
+        np.testing.assert_almost_equal(result.values[:, -1], expected)
