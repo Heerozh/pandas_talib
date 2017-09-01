@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 __all__ = ['MA', 'SMA', 'EMA', 'STDDEV', 'MOM', 'ROC', 'ROCP', 'ATR',
-           'BBANDS', 'MACD', 'RSI', 'MAX', 'MIN']
+           'BBANDS', 'MACD', 'RSI', 'MAX', 'MIN', 'STOCHK', 'STOCH']
 
 
 def out(df, result, join, dropna, dtype):
@@ -94,7 +94,7 @@ def EMA(df, columns, n, join=None, dropna=False, min_periods=-1,
     Exponential Moving Average
     """
     result = sel_columns(df, columns, join).copy()
-
+    assert len(result) > n, "df at least contains n rows."
     ma = np.mean(result.values[:n], axis=0)
     result.iloc[:n] = np.resize(ma, (n, len(ma)))
     if min_periods == -1:
@@ -128,7 +128,7 @@ def ROC(df, columns, n, join=None, dropna=False, dtype=np.float32):
     Rate of Change
     """
     result = sel_columns(df, columns, join)
-    M = result.diff(n)
+    M = result.diff(n)  # or df - df.shift(n)
     N = result.shift(n)
     result = M / N * 100
     return out(df, result, bool(join), dropna, dtype)
@@ -243,6 +243,7 @@ def RSI(df, columns, n, join=None, dropna=False, normalize=False,
     change = sel_df.diff(1)
 
     up = change.clip_lower(0)
+    assert len(up) > n, "df at least contains n rows."
     ma = np.mean(up.values[1:n], axis=0)
     up.iloc[:n] = np.resize(ma, (n, len(ma)))
     up = up.ewm(com=n-1, adjust=False).mean()
@@ -271,8 +272,11 @@ def MAX(df, columns, n, join=None, dropna=False, dtype=np.float32):
     """
     Highest value over a specified period
     """
+    abs_n = abs(n)
     result = sel_columns(df, columns, join)
-    result = result.rolling(n).max()
+    result = result.rolling(abs_n).max()
+    if n < 0:
+        result = result.shift(n+1)
     return out(df, result, bool(join), dropna, dtype)
 
 
@@ -280,7 +284,52 @@ def MIN(df, columns, n, join=None, dropna=False, dtype=np.float32):
     """
     Lowest value over a specified period
     """
+    abs_n = abs(n)
     result = sel_columns(df, columns, join)
-    result = result.rolling(n).min()
+    result = result.rolling(abs_n).min()
+    if n < 0:
+        result = result.shift(n+1)
     return out(df, result, bool(join), dropna, dtype)
 
+
+def STOCHK(df, n, high_column='High', low_column='Low', close_column='Close',
+          join=None, dropna=False, normalize=False, dtype=np.float32):
+    """
+    Stochastic. It is calculated by a formula: 100 * (c - lowest(l)) / (highest(h) - lowest(l))
+    """
+    high_series = MAX(None, df[high_column], n, dtype=None)
+    low_series = MIN(None, df[low_column], n, dtype=None)
+    close_series = df[close_column]
+    k = (close_series - low_series) / (high_series - low_series)
+
+    if normalize:
+        k = k - 0.5
+    else:
+        k *= 100
+
+    if join:
+        k.rename(type(join) is list and join[0] or join, inplace=True)
+    return out(df, k, bool(join), dropna, dtype)
+
+
+def STOCH(df, n, n_k=1, n_d=3, high_column='High', low_column='Low', close_column='Close',
+          join=None, dropna=False, normalize=False, dtype=np.float32):
+    """
+    Stochastic.
+    """
+    fast_k = STOCHK(df, n, high_column, low_column, close_column, normalize=normalize, dtype=None)
+
+    slow_k = MA(None, fast_k, n_k, dtype=None)
+    slow_d = MA(None, slow_k, n_d, dtype=None)
+    slow_k[slow_d.isnull()] = np.nan
+    slow_d[slow_k.isnull()] = np.nan
+
+    if join:
+        slow_k.rename(join[0], inplace=True)
+        slow_d.rename(join[1], inplace=True)
+
+        r = out(df, slow_k, True, dropna, dtype)
+        r = out(r, slow_d, True, dropna, dtype)
+        return r
+    else:
+        return pd.DataFrame([slow_k, slow_d])

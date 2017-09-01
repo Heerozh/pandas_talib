@@ -127,3 +127,14 @@ class TestFunctions(unittest.TestCase):
         isinstance(result, pd.DataFrame)
         expected = talib.MIN(df['Close'].values, timeperiod=n)
         np.testing.assert_almost_equal(result.values[:, -1], expected)
+
+    def test_indicator_STOCH(self):
+        n = 14
+        result = STOCH(df, n, join=False, dropna=False, dtype=np.float64)
+        isinstance(result, pd.DataFrame)
+        expected = talib.STOCH(
+            df['High'].values, df['Low'].values, df['Close'].values,
+            fastk_period=n, slowk_period=1, slowd_period=3)
+        print('kdj x', result.as_matrix()[0, 0:50])
+        print('kdj y', np.array(expected)[0, 0:50])
+        np.testing.assert_almost_equal(result.values, expected)
