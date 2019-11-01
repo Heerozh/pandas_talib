@@ -1,4 +1,6 @@
 
+** Deprecated, please use spectre: https://github.com/Heerozh/spectre **
+
 pandas\_talib
 =============
 
